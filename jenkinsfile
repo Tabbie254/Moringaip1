@@ -1,3 +1,29 @@
 pipeline{
-    
+    agent any
+
+    tools {
+        gradle 'Gradle-6'
+    }
+
+    stages {
+        stage('Clone repository') {
+            steps {
+                git 'https://github.com/Tabbie254/Moringaip1.git'
+                
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'gradle build'
+            }
+        }
+        stage('Tests') {
+            steps {
+                sh 'gradle test'
+            }
+        }
+        stage('Deploy to Heroku') {
+
+        }
+    }
 }
