@@ -47,6 +47,10 @@ pipeline {
     }
 
     post {
+        always {
+            junit skipPublishingChecks: true, testResults: '**/cpputest_*.xml'
+        }
+
         failure {
             echo 'Build Failed'
             emailext body: "Build id: #${BUILD_ID} for ${JOB_NAME} failed", subject: 'Buiild Failed', to: 'tabitha.mutiso@student.moringaschool.com'
