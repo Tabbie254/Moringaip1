@@ -1,8 +1,28 @@
-pipeline{
+pipeline {
     agent any
+    
+     tools {
+        nodejs '19.4.0' 
+    }
 
-    tools {
-        gradle 'Gradle-6'
+    environment {
+        VERSION_NUMBER = '1.0'
+        GITHUB_REPO = 'https://github.com/Tabbie254/Moringaip1.git'
+        
+        EMAIL_BODY =
+        """
+            <p>EXECUTED: Job <b>\'${env.JOB_NAME}:${env.BUILD_NUMBER})\'</b></p>
+            <p>
+            View console output at
+            "<a href="${env.BUILD_URL}">${env.JOB_NAME}:${env.BUILD_NUMBER}</a>"
+            </p>
+            <p><i>(Build log is attached.)</i></p>
+        """
+
+        EMAIL_SUBJECT_SUCCESS = "Status: 'SUCCESS' -Job \'${env.JOB_NAME}:${env.BUILD_NUMBER}\'"
+        EMAIL_SUBJECT_FAILURE = "Status: 'FAILURE' -Job \'${env.JOB_NAME}:${env.BUILD_NUMBER}\'"
+        EMAIL_RECEPIENT = 'tabitha.mutiso@student.moringaschool.com'
+        LIVE_SITE = 'https://secret-shore-37984.herokuapp.com/'
     }
 
     stages {
@@ -12,18 +32,42 @@ pipeline{
                 
             }
         }
-        stage('Build') {
+         stage('Build') {
             steps {
-                sh 'gradle build'
+                echo "Build number ${BUILD_NUMBER}"
+                bat "npm install"
             }
         }
         stage('Tests') {
             steps {
-                sh 'gradle test'
+                bat "npm test"
             }
         }
-        stage('Deploy to Heroku') {
+        
+    }
 
+    post {
+        always {
+            junit skipPublishingChecks: true, testResults: '**/cpputest_*.xml'
+        }
+
+        failure {
+            emailext attachLog: true, 
+                body:
+                    """
+                    <p>EXECUTED: Job <b>\'${env.JOB_NAME}:${env.BUILD_NUMBER})\'</b></p>
+                    <p>
+                    View console output at 
+                    "<a href="${env.BUILD_URL}">${env.JOB_NAME}:${env.BUILD_NUMBER}</a>"
+                    </p> 
+                      <p><i>(Build log is attached.)</i></p>
+                    """,
+                subject: "Status: FAILURE -Job \'${env.JOB_NAME}:${env.BUILD_NUMBER}\'", 
+                to: 'tabitha.mutiso@student.moringaschool.com'
+        }
+        success {
+            echo 'Build run successfully'
+            slackSend color: "good", message: "Message from Jenkins Pipeline Build #${BUILD_NUMBER}"
         }
     }
 }
